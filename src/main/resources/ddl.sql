@@ -7,5 +7,5 @@ CREATE TABLE `spark_db`.`user` (
 	`nick_name` varchar(40) NOT NULL DEFAULT ''  COMMENT '名称',
 	`gender` int NOT NULL DEFAULT 0  COMMENT '性别',
 	PRIMARY KEY (`id`),
-	UNIQUE `telphone_unique_index` USING BTREE (`telphone`) comment ''
+	UNIQUE `telphone_unique_index` USING BTREE (`telephone`) comment '电话号码唯一索引'
 ) COMMENT='用户表';
