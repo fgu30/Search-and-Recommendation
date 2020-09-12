@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<!-- 配置生成器   mvn mybatis-generator:generate -->
+<generatorConfiguration>
+    <!-- 数据库驱动路径-->
+<!--    <classPathEntry location="/Users/mac/Downloads/mysql-connector-java-5.1.6.jar" />-->
+    <classPathEntry location="D:/git/javabasic/mysql-connector-java-5.1.37.jar" />
+    <!-- 数据源-->
+    <context id="mysql" targetRuntime="MyBatis3">
+        <!--        不再追加xml内容-->
+        <plugin type="org.mybatis.generator.plugins.UnmergeableXmlMappersPlugin" />
+        <!--取消注释 -->
+        <commentGenerator>
+            <property name="suppressAllComments" value="true"/>
+        </commentGenerator>
+
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://127.0.0.1:3306/spark_db?characterEncoding=utf-8"
+                        userId="root"
+                        password="root123456">
+        </jdbcConnection>
+
+        <!-- true：使用BigDecimal对应DECIMAL和 NUMERIC数据类型
+            false：默认,
+            scale>0;length>18：使用BigDecimal;
+            scale=0;length[10,18]：使用Long；
+            scale=0;length[5,9]：使用Integer；
+            scale=0;length<5：使用Short；-->
+        <javaTypeResolver>
+            <property name="forceBigDecimals" value="false" />
+        </javaTypeResolver>
+
+        <!--实体类路径-->
+        <javaModelGenerator targetPackage="com.bin.spark.model" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true" />
+            <property name="trimStrings" value="true" />
+        </javaModelGenerator>
+        <!-- mapper配置xml路径-->
+        <sqlMapGenerator targetPackage="mapper"  targetProject="src/main/resources">
+            <property name="enableSubPackages" value="true" />
+        </sqlMapGenerator>
+        <!--dao层路径-->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.bin.spark.mapper"  targetProject="src/main/java">
+            <property name="enableSubPackages" value="true" />
+        </javaClientGenerator>
+
+        <!--生成对应表及类名-->
+        <table tableName="user"  domainObjectName="UserModel" enableCountByExample="false"
+               enableUpdateByExample="false" enableDeleteByExample="false"
+               enableSelectByExample="false" selectByExampleQueryId="false">
+               <generatedKey column="id" sqlStatement="MySql" identity="true" />
+        </table>
+    </context>
+</generatorConfiguration>
