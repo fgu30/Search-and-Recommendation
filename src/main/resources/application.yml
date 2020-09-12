@@ -9,10 +9,13 @@ spring:
     username: root
     password: root123456
   resources:
-    add-mappings: false
+    add-mappings: true #如果所有所有controller没用命中，匹配静态资源
   mvc:
     throw-exception-if-no-handler-found: true
-
+    static-path-pattern: /static/**
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
 mybatis:
   mapper-locations: classpath:mapper/*.xml
   configuration:
