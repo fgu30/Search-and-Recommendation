@@ -5,8 +5,8 @@
 <!-- 配置生成器   mvn mybatis-generator:generate -->
 <generatorConfiguration>
     <!-- 数据库驱动路径-->
-<!--    <classPathEntry location="/Users/mac/Downloads/mysql-connector-java-5.1.6.jar" />-->
-    <classPathEntry location="D:/git/javabasic/mysql-connector-java-5.1.37.jar" />
+    <classPathEntry location="/Users/mac/Downloads/mysql-connector-java-5.1.6.jar" />
+<!--    <classPathEntry location="D:/git/javabasic/mysql-connector-java-5.1.37.jar" />-->
     <!-- 数据源-->
     <context id="mysql" targetRuntime="MyBatis3">
         <!--        不再追加xml内容-->
@@ -47,10 +47,16 @@
         </javaClientGenerator>
 
         <!--生成对应表及类名-->
-        <table tableName="user"  domainObjectName="UserModel" enableCountByExample="false"
-               enableUpdateByExample="false" enableDeleteByExample="false"
-               enableSelectByExample="false" selectByExampleQueryId="false">
-               <generatedKey column="id" sqlStatement="MySql" identity="true" />
-        </table>
+<!--        <table tableName="user"  domainObjectName="UserModel" enableCountByExample="false"-->
+<!--               enableUpdateByExample="false" enableDeleteByExample="false"-->
+<!--               enableSelectByExample="false" selectByExampleQueryId="false">-->
+<!--               <generatedKey column="id" sqlStatement="MySql" identity="true" />-->
+<!--        </table>-->
+
+<!--        <table tableName="seller"  domainObjectName="SellerModel" enableCountByExample="false"-->
+<!--               enableUpdateByExample="false" enableDeleteByExample="false"-->
+<!--               enableSelectByExample="false" selectByExampleQueryId="false">-->
+<!--            <generatedKey column="id" sqlStatement="MySql" identity="true" />-->
+<!--        </table>-->
     </context>
 </generatorConfiguration>
