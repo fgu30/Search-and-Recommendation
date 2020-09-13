@@ -39,6 +39,13 @@ public class RuntimeExceptionHandler {
         return  ResponseVo.error(ResponseEnum.NEED_LOGIN);
     }
 
+
+    @ExceptionHandler(value = UserRegisterException.class)
+    @ResponseBody
+    public ResponseVo<String> handlerSellerException(UserRegisterException e) {
+        return ResponseVo.error(ERROR, e.getMessage());
+    }
+
     /**
      * 统一拦截  BindingResult 对象就不需要放在参数里边
      * 参数异常校验 @NOTNULLL

@@ -8,16 +8,17 @@ import lombok.Getter;
  * @author mac
  */
 @Getter
-public class UserLoginException extends RuntimeException {
+public class UserRegisterException extends RuntimeException {
+
     private Integer code;
 
-    public UserLoginException(ResponseEnum resultEnum) {
+    public UserRegisterException(ResponseEnum resultEnum) {
         super(resultEnum.getDesc());
 
         this.code = resultEnum.getCode();
     }
 
-    public UserLoginException(Integer code, String message) {
+    public UserRegisterException(Integer code, String message) {
         super(message);
         this.code = code;
     }

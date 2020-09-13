@@ -11,7 +11,7 @@
     <result column="gender" jdbcType="INTEGER" property="gender" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, created_at, updated_at, telphone, password, nick_name, gender
+    id, created_at, updated_at, telephone, password, nick_name, gender
   </sql>
   <select id="selectByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select
@@ -19,5 +19,11 @@
     from user
     where id = #{id,jdbcType=INTEGER}
   </select>
+    <select id="queryByPhoneAndPassword" resultType="com.bin.spark.model.UserModel">
+      select <include refid="Base_Column_List" />
+      from user
+      where telePhone =#{telephone}
+      and password =#{password}
+    </select>
 
 </mapper>
