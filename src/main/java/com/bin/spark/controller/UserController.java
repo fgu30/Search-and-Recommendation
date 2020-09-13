@@ -1,9 +1,8 @@
 package com.bin.spark.controller;
 
+import com.bin.spark.common.BusinessException;
 import com.bin.spark.common.ResponseEnum;
 import com.bin.spark.common.ResponseVo;
-import com.bin.spark.common.UserLoginException;
-import com.bin.spark.common.UserRegisterException;
 import com.bin.spark.form.LoginForm;
 import com.bin.spark.form.RegisterFrom;
 import com.bin.spark.model.UserModel;
@@ -57,7 +56,7 @@ public class UserController {
                                           BindingResult bindingResult){
         //参数校验
         if(bindingResult.hasErrors()){
-            throw new UserRegisterException(ResponseEnum.PARAM_ERROR.getCode(),
+            throw new BusinessException(ResponseEnum.PARAM_ERROR.getCode(),
                     Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
         }
         UserModel userModel = new UserModel();
@@ -71,7 +70,7 @@ public class UserController {
                                           BindingResult bindingResult,HttpServletRequest httpServletRequest){
         //参数校验
         if(bindingResult.hasErrors()){
-            throw new UserLoginException(ResponseEnum.PARAM_ERROR.getCode(),
+            throw new BusinessException(ResponseEnum.PARAM_ERROR.getCode(),
                     Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
         }
         UserModel userModel = new UserModel();

@@ -33,16 +33,10 @@ public class RuntimeExceptionHandler {
     }
 
 
-    @ExceptionHandler(UserLoginException.class)
-    @ResponseBody
-    public ResponseVo<String> userLoginHandle (){
-        return  ResponseVo.error(ResponseEnum.NEED_LOGIN);
-    }
 
-
-    @ExceptionHandler(value = UserRegisterException.class)
+    @ExceptionHandler(value = BusinessException.class)
     @ResponseBody
-    public ResponseVo<String> handlerSellerException(UserRegisterException e) {
+    public ResponseVo<String> handlerSellerException(BusinessException e) {
         return ResponseVo.error(ERROR, e.getMessage());
     }
 

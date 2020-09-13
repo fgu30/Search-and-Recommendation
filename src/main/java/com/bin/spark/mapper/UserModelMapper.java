@@ -2,10 +2,12 @@ package com.bin.spark.mapper;
 
 import com.bin.spark.MyMapper;
 import com.bin.spark.model.UserModel;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author mac
+ */
 @Repository
 public interface UserModelMapper extends MyMapper<UserModel> {
     /**
