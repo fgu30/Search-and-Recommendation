@@ -29,5 +29,5 @@ public interface UserService {
      * @param userModel 登录查询
      * @return
      */
-    ResponseVo<UserModel> login(UserModel userModel);
+    UserModel login(UserModel userModel);
 }

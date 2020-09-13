@@ -8,15 +8,15 @@ import com.bin.spark.form.LoginForm;
 import com.bin.spark.form.RegisterFrom;
 import com.bin.spark.model.UserModel;
 import com.bin.spark.service.UserService;
-import org.omg.CORBA.UserException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Objects;
 
@@ -27,7 +27,10 @@ import java.util.Objects;
  */
 @Controller
 @RequestMapping("/user")
+@Slf4j
 public class UserController {
+
+    public static final String CURRENT_USER_SESSION = "currentUserSession";
 
     @Autowired
     private UserService userService;
@@ -65,7 +68,7 @@ public class UserController {
     @PostMapping("/login")
     @ResponseBody
     public ResponseVo<UserModel> login(@Valid @RequestBody LoginForm loginForm,
-                                          BindingResult bindingResult){
+                                          BindingResult bindingResult,HttpServletRequest httpServletRequest){
         //参数校验
         if(bindingResult.hasErrors()){
             throw new UserLoginException(ResponseEnum.PARAM_ERROR.getCode(),
@@ -73,6 +76,29 @@ public class UserController {
         }
         UserModel userModel = new UserModel();
         BeanUtils.copyProperties(loginForm,userModel);
-        return userService.login(userModel);
+        UserModel userLogin =userService.login(userModel);;
+        if(userLogin == null){
+            return ResponseVo.error(ResponseEnum.PASSWORD_ERROR);
+        }else{
+            log.info("用户{}登录成功",userLogin.getNickName());
+        }
+        userLogin.setPassword("");
+        httpServletRequest.getSession().setAttribute(CURRENT_USER_SESSION,userLogin);
+
+        log.info(httpServletRequest.getSession().getAttribute(CURRENT_USER_SESSION).toString());
+        return ResponseVo.success(userLogin);
+    }
+
+    @PostMapping("/logout")
+    @ResponseBody
+    public ResponseVo<String> logout(HttpServletRequest httpServletRequest){
+        httpServletRequest.getSession().invalidate();
+        return ResponseVo.success("退出成功！");
+    }
+    @PostMapping("/getcurrentuser")
+    @ResponseBody
+    public ResponseVo<UserModel> getCurrentUser(HttpServletRequest httpServletRequest){
+        UserModel userModel = (UserModel) httpServletRequest.getSession().getAttribute(CURRENT_USER_SESSION);
+        return ResponseVo.success(userModel);
     }
 }

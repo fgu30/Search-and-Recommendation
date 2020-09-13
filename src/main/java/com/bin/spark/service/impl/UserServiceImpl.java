@@ -65,22 +65,15 @@ public class UserServiceImpl implements UserService {
     /**
      * 登录
      *
-     * @param userModel 登录查询
+     * @param user 登录查询
      * @return
      */
     @Override
-    public ResponseVo<UserModel> login(UserModel user) {
+    public UserModel login(UserModel user) {
 
         //MD5摘要算法（Spring 自带）
         user.setPassword(DigestUtils.md5DigestAsHex(user.getPassword().getBytes(StandardCharsets.UTF_8)));
         //查询数据库
-        UserModel userLogin =userModelMapper.queryByPhoneAndPassword(user.getTelephone(),user.getPassword());
-        if(userLogin == null){
-            return ResponseVo.error(ResponseEnum.PASSWORD_ERROR);
-        }else{
-            log.info("用户{}登录成功",userLogin.getNickName());
-        }
-        userLogin.setPassword("");
-        return ResponseVo.success(userLogin);
+        return userModelMapper.queryByPhoneAndPassword(user.getTelephone(),user.getPassword());
     }
 }
