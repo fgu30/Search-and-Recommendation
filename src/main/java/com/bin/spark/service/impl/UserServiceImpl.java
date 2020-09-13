@@ -76,4 +76,16 @@ public class UserServiceImpl implements UserService {
         //查询数据库
         return userModelMapper.queryByPhoneAndPassword(user.getTelephone(),user.getPassword());
     }
+
+    /**
+     * 查询用户总数
+     *
+     * @return
+     */
+    @Override
+    public Integer countAllUser() {
+        UserModel userModel = new UserModel();
+        List<UserModel> userModelList = userModelMapper.select(userModel);
+        return userModelList.size();
+    }
 }

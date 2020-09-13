@@ -30,4 +30,10 @@ public interface UserService {
      * @return
      */
     UserModel login(UserModel userModel);
+
+    /**
+     * 查询用户总数
+     * @return
+     */
+    Integer countAllUser();
 }

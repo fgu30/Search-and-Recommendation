@@ -21,3 +21,8 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+#admin官方账号的用户名以及密码
+admin:
+  email: admin@qq.com
+  password: e10adc3949ba59abbe56e057f20f883e
