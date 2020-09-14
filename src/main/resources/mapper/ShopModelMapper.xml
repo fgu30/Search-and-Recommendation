@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bin.spark.mapper.ShopModelMapper">
+  <resultMap id="BaseResultMap" type="com.bin.spark.model.ShopModel">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="remark_score" jdbcType="DECIMAL" property="remarkScore" />
+    <result column="price_per_man" jdbcType="INTEGER" property="pricePerMan" />
+    <result column="latitude" jdbcType="DECIMAL" property="latitude" />
+    <result column="longitude" jdbcType="DECIMAL" property="longitude" />
+    <result column="category_id" jdbcType="INTEGER" property="categoryId" />
+    <result column="tags" jdbcType="VARCHAR" property="tags" />
+    <result column="start_time" jdbcType="VARCHAR" property="startTime" />
+    <result column="end_time" jdbcType="VARCHAR" property="endTime" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="seller_id" jdbcType="INTEGER" property="sellerId" />
+    <result column="icon_url" jdbcType="VARCHAR" property="iconUrl" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, created_at, updated_at, name, remark_score, price_per_man, latitude, longitude, 
+    category_id, tags, start_time, end_time, address, seller_id, icon_url
+  </sql>
+
+</mapper>
