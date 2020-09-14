@@ -64,5 +64,11 @@
 <!--               enableSelectByExample="false" selectByExampleQueryId="false">-->
 <!--            <generatedKey column="id" sqlStatement="MySql" identity="true" />-->
 <!--        </table>-->
+
+<!--        <table tableName="shop"  domainObjectName="ShopModel" enableCountByExample="false"-->
+<!--               enableUpdateByExample="false" enableDeleteByExample="false"-->
+<!--               enableSelectByExample="false" selectByExampleQueryId="false">-->
+<!--            <generatedKey column="id" sqlStatement="MySql" identity="true" />-->
+<!--        </table>-->
     </context>
 </generatorConfiguration>

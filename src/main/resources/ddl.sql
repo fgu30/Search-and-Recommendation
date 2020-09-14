@@ -14,22 +14,22 @@ CREATE TABLE `spark_db`.`user` (
 
 CREATE TABLE `spark_db`.`seller`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
-  `name` varchar(80) NOT NULL DEFAULT '',
-  `created_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00',
-  `updated_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00',
-  `remark_score` decimal(2, 1) NOT NULL DEFAULT 0,
-  `disabled_flag` int(0) NOT NULL DEFAULT 0,
+  `name` varchar(80) NOT NULL DEFAULT '' COMMENT '名称',
+  `created_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00' COMMENT '创建时间',
+  `updated_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00' COMMENT '更新时间',
+  `remark_score` decimal(2, 1) NOT NULL DEFAULT 0 COMMENT '排序权重分数',
+  `disabled_flag` int(0) NOT NULL DEFAULT 0 COMMENT '商户状态：1-生效 0-失效',
   PRIMARY KEY (`id`)
 );
 
 
 CREATE TABLE `spark_db`.`category`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
-  `created_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00',
-  `updated_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00',
-  `name` varchar(20) NOT NULL DEFAULT '',
-  `icon_url` varchar(200) NOT NULL DEFAULT '',
-  `sort` int(0) NOT NULL DEFAULT 0,
+  `created_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00' COMMENT '创建时间',
+  `updated_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00' COMMENT '更新时间',
+  `name` varchar(20) NOT NULL DEFAULT '' COMMENT '名称',
+  `icon_url` varchar(200) NOT NULL DEFAULT ''COMMENT '图片url',
+  `sort` int(0) NOT NULL DEFAULT 0 COMMENT '权重',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_unique_index`(`name`) USING BTREE
 );
@@ -37,19 +37,19 @@ CREATE TABLE `spark_db`.`category`  (
 
 CREATE TABLE `spark_db`.`shop`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
-  `created_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00',
-  `updated_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00',
-  `name` varchar(80) NOT NULL DEFAULT '',
-  `remark_score` decimal(2, 1) NOT NULL DEFAULT 0,
-  `price_per_man` int(0) NOT NULL DEFAULT 0,
-  `latitude` decimal(10, 6) NOT NULL DEFAULT 0,
-  `longitude` decimal(10, 6) NOT NULL DEFAULT 0,
-  `category_id` int(0) NOT NULL DEFAULT 0,
-  `tags` varchar(2000) NOT NULL DEFAULT '',
-  `start_time` varchar(200) NOT NULL DEFAULT '',
-  `end_time` varchar(200) NOT NULL DEFAULT '',
-  `address` varchar(200) NOT NULL DEFAULT '',
-  `seller_id` int(0) NOT NULL DEFAULT 0,
-  `icon_url` varchar(100) NOT NULL DEFAULT '',
+  `created_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00' COMMENT '创建时间',
+  `updated_at` datetime(0) NOT NULL DEFAULT '2020-01-01 00:00:00' COMMENT '更新时间',
+  `name` varchar(80) NOT NULL DEFAULT '' COMMENT '名称',
+  `remark_score` decimal(2, 1) NOT NULL DEFAULT 0 COMMENT '排序权重分数',
+  `price_per_man` int(0) NOT NULL DEFAULT 0 COMMENT '人均价格',
+  `latitude` decimal(10, 6) NOT NULL DEFAULT 0 COMMENT '纬度',
+  `longitude` decimal(10, 6) NOT NULL DEFAULT 0 COMMENT '经度',
+  `category_id` int(0) NOT NULL DEFAULT 0 COMMENT'品类Id',
+  `tags` varchar(2000) NOT NULL DEFAULT '' COMMENT '标签',
+  `start_time` varchar(200) NOT NULL DEFAULT ''COMMENT '开业时间',
+  `end_time` varchar(200) NOT NULL DEFAULT ''COMMENT '关门时间',
+  `address` varchar(200) NOT NULL DEFAULT '' COMMENT '地址',
+  `seller_id` int(0) NOT NULL DEFAULT 0 COMMENT '商户Id',
+  `icon_url` varchar(100) NOT NULL DEFAULT '' COMMENT '门店图标url',
   PRIMARY KEY (`id`)
 );
