@@ -1,10 +1,7 @@
 package com.bin.spark.controller;
 
 
-import com.bin.spark.common.BaseException;
-import com.bin.spark.common.BusinessException;
-import com.bin.spark.common.CommonRes;
-import com.bin.spark.common.EmBusinessError;
+import com.bin.spark.common.*;
 import com.bin.spark.model.CategoryModel;
 import com.bin.spark.model.ShopModel;
 import com.bin.spark.service.CategoryService;
@@ -37,21 +34,21 @@ public class ShopController {
     //推荐服务V1.0
     @RequestMapping("/recommend")
     @ResponseBody
-    public CommonRes recommend(@RequestParam(name="longitude")BigDecimal longitude,
-                               @RequestParam(name="latitude")BigDecimal latitude) throws BaseException {
+    public ResponseVo<List<ShopModel>> recommend(@RequestParam(name="longitude")BigDecimal longitude,
+                                @RequestParam(name="latitude")BigDecimal latitude) throws BaseException {
         if(longitude == null || latitude == null){
             throw new BaseException(EmBusinessError.PARAMETER_VALIDATION_ERROR);
         }
 
         List<ShopModel> shopModelList = shopService.recommend(longitude,latitude);
-        return CommonRes.create(shopModelList);
+        return ResponseVo.success(shopModelList);
     }
 
 
     //搜索服务V1.0
     @RequestMapping("/search")
     @ResponseBody
-    public CommonRes search(@RequestParam(name="longitude")BigDecimal longitude,
+    public ResponseVo<Map<String,Object>> search(@RequestParam(name="longitude")BigDecimal longitude,
                             @RequestParam(name="latitude")BigDecimal latitude,
                             @RequestParam(name="keyword")String keyword,
                             @RequestParam(name="orderby",required = false)Integer orderby,
@@ -60,15 +57,14 @@ public class ShopController {
         if(StringUtils.isEmpty(keyword) || longitude == null || latitude == null){
             throw new BaseException(EmBusinessError.PARAMETER_VALIDATION_ERROR);
         }
-
         List<ShopModel> shopModelList = shopService.search(longitude,latitude,keyword,orderby,categoryId,tags);
         List<CategoryModel> categoryModelList = categoryService.selectAll();
         List<Map<String,Object>> tagsAggregation = shopService.searchGroupByTags(keyword,categoryId,tags);
-        Map<String,Object> resMap = new HashMap<>();
+        Map<String,Object> resMap = new HashMap<>(3);
         resMap.put("shop",shopModelList);
         resMap.put("category",categoryModelList);
         resMap.put("tags",tagsAggregation);
-        return CommonRes.create(resMap);
+        return ResponseVo.success(resMap);
 
     }
 

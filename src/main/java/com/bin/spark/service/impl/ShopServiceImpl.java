@@ -24,6 +24,7 @@ import java.util.Map;
 /**
  * Created by 斌~
  * 2020/9/14 16:18
+ * @author mac
  */
 @Service
 public class ShopServiceImpl implements ShopService {
@@ -51,7 +52,7 @@ public class ShopServiceImpl implements ShopService {
             throw new BaseException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商户不存在");
         }
 
-        if(sellerModel.getDisabledFlag().intValue() == 1){
+        if(sellerModel.getDisabledFlag() == 1){
             throw new BaseException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商户已禁用");
         }
         //校验类目
@@ -81,6 +82,7 @@ public class ShopServiceImpl implements ShopService {
      * @return
      */
     @Override
+    @Transactional
     public ShopModel get(Integer id) {
         ShopModel shopModel = shopModelMapper.selectByPrimaryKey(id);
         if(shopModel == null){
@@ -97,6 +99,7 @@ public class ShopServiceImpl implements ShopService {
      * @return
      */
     @Override
+    @Transactional
     public List<ShopModel> selectAll() {
         List<ShopModel> shopModelList = shopModelMapper.selectAll();
         shopModelList.forEach(shopModel -> {
@@ -114,8 +117,14 @@ public class ShopServiceImpl implements ShopService {
      * @return
      */
     @Override
+    @Transactional(rollbackFor =Exception.class)
     public List<ShopModel> recommend(BigDecimal longitude, BigDecimal latitude) {
-        return null;
+        List<ShopModel> shopModelList = shopModelMapper.recommend(longitude, latitude);
+        shopModelList.forEach(shopModel -> {
+            shopModel.setSellerModel(sellerService.get(shopModel.getSellerId()));
+            shopModel.setCategoryModel(categoryService.get(shopModel.getCategoryId()));
+        });
+        return shopModelList;
     }
 
     /**
@@ -130,12 +139,19 @@ public class ShopServiceImpl implements ShopService {
      * @return
      */
     @Override
-    public List<ShopModel> search(BigDecimal longitude, BigDecimal latitude, String keyword, Integer orderby, Integer categoryId, String tags) {
-        return null;
+    @Transactional(rollbackFor =Exception.class)
+    public List<ShopModel> search(BigDecimal longitude, BigDecimal latitude, String keyword,
+                                  Integer orderby, Integer categoryId, String tags) {
+        List<ShopModel> shopModelList = shopModelMapper.search(longitude,latitude,keyword,orderby,categoryId,tags);
+        shopModelList.forEach(shopModel -> {
+            shopModel.setSellerModel(sellerService.get(shopModel.getSellerId()));
+            shopModel.setCategoryModel(categoryService.get(shopModel.getCategoryId()));
+        });
+        return shopModelList;
     }
 
     /**
-     * 根据类目以及标签查询
+     * 结果标签查询
      *
      * @param keyword
      * @param categoryId
@@ -144,7 +160,8 @@ public class ShopServiceImpl implements ShopService {
      */
     @Override
     public List<Map<String, Object>> searchGroupByTags(String keyword, Integer categoryId, String tags) {
-        return null;
+
+        return shopModelMapper.searchGroupByTags(keyword,categoryId,tags);
     }
 
     @Override

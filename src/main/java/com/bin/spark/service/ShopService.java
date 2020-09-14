@@ -12,6 +12,7 @@ import java.util.Map;
 /**
  * Created by 斌~
  * 2020/9/14 11:00
+ * @author mac
  */
 public interface ShopService {
 
@@ -19,6 +20,7 @@ public interface ShopService {
      * 创建门店
      * @param shopModel
      * @return
+     * @throws BaseException
      */
     ShopModel create(ShopModel shopModel) throws BaseException;
 
@@ -48,12 +50,13 @@ public interface ShopService {
      * @param longitude
      * @param latitude
      * @param keyword
-     * @param orderby
+     * @param orderBy
      * @param categoryId
      * @param tags
      * @return
      */
-    List<ShopModel> search(BigDecimal longitude, BigDecimal latitude, String keyword, Integer orderby, Integer categoryId, String tags);
+    List<ShopModel> search(BigDecimal longitude, BigDecimal latitude, String keyword,
+                           Integer orderBy, Integer categoryId, String tags);
 
     /**
      * 根据类目以及标签查询
@@ -64,6 +67,10 @@ public interface ShopService {
      */
     List<Map<String, Object>> searchGroupByTags(String keyword, Integer categoryId, String tags);
 
+    /**
+     * 查询门店数量
+     * @return
+     */
     Integer countAllShop();
 
 }

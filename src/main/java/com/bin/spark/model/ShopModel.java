@@ -45,4 +45,6 @@ public class ShopModel {
     private SellerModel sellerModel;
 
     private String iconUrl;
+
+    private Integer distance;
 }
