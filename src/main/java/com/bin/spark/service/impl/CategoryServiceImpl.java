@@ -2,7 +2,6 @@ package com.bin.spark.service.impl;
 
 import com.bin.spark.mapper.CategoryModelMapper;
 import com.bin.spark.model.CategoryModel;
-import com.bin.spark.model.UserModel;
 import com.bin.spark.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,5 +72,11 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryModelList.stream()
                 .sorted(Comparator.comparing(CategoryModel::getSort).reversed())
                 .sorted(Comparator.comparing(CategoryModel::getId)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Integer countAllCategory() {
+        CategoryModel categoryModel = new CategoryModel();
+        return categoryModelMapper.selectCount(categoryModel);
     }
 }

@@ -4,6 +4,7 @@ import com.bin.spark.common.BusinessException;
 import com.bin.spark.common.ResponseEnum;
 import com.bin.spark.mapper.SellerModelMapper;
 import com.bin.spark.model.SellerModel;
+import com.bin.spark.model.UserModel;
 import com.bin.spark.service.SellerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,12 @@ public class SellerServiceImpl implements SellerService {
         sellerModel.setDisabledFlag(disabledFlag);
         sellerModelMapper.updateByPrimaryKeySelective(sellerModel);
         return sellerModel;
+    }
+
+    @Override
+    public Integer countAllSeller() {
+        SellerModel sellerModel = new SellerModel();
+        return sellerModelMapper.selectCount(sellerModel);
     }
 
 }

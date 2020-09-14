@@ -63,4 +63,7 @@ public interface ShopService {
      * @return
      */
     List<Map<String, Object>> searchGroupByTags(String keyword, Integer categoryId, String tags);
+
+    Integer countAllShop();
+
 }

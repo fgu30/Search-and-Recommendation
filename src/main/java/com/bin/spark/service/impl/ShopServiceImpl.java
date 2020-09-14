@@ -146,4 +146,10 @@ public class ShopServiceImpl implements ShopService {
     public List<Map<String, Object>> searchGroupByTags(String keyword, Integer categoryId, String tags) {
         return null;
     }
+
+    @Override
+    public Integer countAllShop() {
+        ShopModel shopModel  = new ShopModel();
+        return shopModelMapper.selectCount(shopModel);
+    }
 }

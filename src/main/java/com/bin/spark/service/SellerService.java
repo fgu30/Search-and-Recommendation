@@ -37,4 +37,6 @@ public interface SellerService {
      * @return
      */
     SellerModel changeStatus(Integer id,Integer disabledFlag);
+
+    Integer countAllSeller();
 }
