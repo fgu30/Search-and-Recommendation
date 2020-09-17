@@ -26,3 +26,8 @@ mybatis:
 admin:
   email: admin@qq.com
   password: e10adc3949ba59abbe56e057f20f883e
+#声明es服务
+es:
+  host: 127.0.0.1
+  port: 9200
+  scheme: http
