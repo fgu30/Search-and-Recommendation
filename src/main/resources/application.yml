@@ -16,6 +16,8 @@ spring:
   thymeleaf:
     prefix: classpath:/templates/
     suffix: .html
+  main:
+    allow-bean-definition-overriding: true
 mybatis:
   mapper-locations: classpath:mapper/*.xml
   configuration:
@@ -27,7 +29,5 @@ admin:
   email: admin@qq.com
   password: e10adc3949ba59abbe56e057f20f883e
 #声明es服务
-es:
-  host: 127.0.0.1
-  port: 9200
-  scheme: http
+elasticsearch:
+  ip: 127.0.0.1:9200

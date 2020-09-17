@@ -5,6 +5,7 @@ import com.bin.spark.common.BusinessException;
 import com.bin.spark.model.CategoryModel;
 import com.bin.spark.model.ShopModel;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public interface ShopService {
     List<ShopModel> recommend(BigDecimal longitude, BigDecimal latitude);
 
     /**
-     * 根据经纬度以及地理位置查询
+     * 根据经纬度以及地理位置查询(mysql)
      * @param longitude
      * @param latitude
      * @param keyword
@@ -57,6 +58,20 @@ public interface ShopService {
      */
     List<ShopModel> search(BigDecimal longitude, BigDecimal latitude, String keyword,
                            Integer orderBy, Integer categoryId, String tags);
+
+    /**
+     * 根据经纬度以及地理位置查询(elasticSearch)
+     * @param longitude
+     * @param latitude
+     * @param keyword
+     * @param orderBy
+     * @param categoryId
+     * @param tags
+     * @return
+     * @throws IOException
+     */
+    Map<String,Object> searchEs(BigDecimal longitude, BigDecimal latitude, String keyword,
+                           Integer orderBy, Integer categoryId, String tags) throws IOException;
 
     /**
      * 根据类目以及标签查询

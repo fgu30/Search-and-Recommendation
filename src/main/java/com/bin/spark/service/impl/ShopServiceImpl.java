@@ -10,16 +10,28 @@ import com.bin.spark.model.ShopModel;
 import com.bin.spark.service.CategoryService;
 import com.bin.spark.service.SellerService;
 import com.bin.spark.service.ShopService;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Created by 斌~
@@ -37,6 +49,9 @@ public class ShopServiceImpl implements ShopService {
 
     @Autowired
     private SellerService sellerService;
+
+    @Autowired
+    private RestHighLevelClient restHighLevelClient;
     /**
      * 创建门店
      *
@@ -148,6 +163,39 @@ public class ShopServiceImpl implements ShopService {
             shopModel.setCategoryModel(categoryService.get(shopModel.getCategoryId()));
         });
         return shopModelList;
+    }
+
+    /**
+     * 根据经纬度以及地理位置查询(elasticSearch)
+     *
+     * @param longitude
+     * @param latitude
+     * @param keyword
+     * @param orderBy
+     * @param categoryId
+     * @param tags
+     * @return
+     */
+    @Override
+    public Map<String, Object> searchEs(BigDecimal longitude, BigDecimal latitude, String keyword, Integer orderBy, Integer categoryId, String tags) throws IOException {
+        Map<String, Object> result = new HashMap<>(1);
+
+        SearchRequest searchRequest = new SearchRequest("shop");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("name",keyword));
+        searchSourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+        searchRequest.source(searchSourceBuilder);
+
+        List<Integer> shopIdList = new ArrayList<>();
+        SearchResponse searchResponse=restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        SearchHit[] hits  = searchResponse.getHits().getHits();
+        for(SearchHit hit:hits){
+            shopIdList.add(new Integer(hit.getSourceAsMap().get("id").toString()));
+        }
+        List<ShopModel>  shopModels = shopIdList.stream().map(this::get).collect(Collectors.toList());
+
+        result.put("shop",shopModels);
+        return result;
     }
 
     /**
