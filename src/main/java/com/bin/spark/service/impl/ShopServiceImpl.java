@@ -12,6 +12,7 @@ import com.bin.spark.model.ShopModel;
 import com.bin.spark.service.CategoryService;
 import com.bin.spark.service.SellerService;
 import com.bin.spark.service.ShopService;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.action.search.SearchRequest;
@@ -26,6 +27,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jackson.JsonObjectDeserializer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -203,8 +205,11 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Transactional
     public Map<String, Object> searchEs(BigDecimal longitude, BigDecimal latitude, String keyword, Integer orderBy, Integer categoryId, String tags) throws IOException {
-        Map<String, Object> result = new HashMap<>(1);
+        Map<String, Object> result = new HashMap<>(2);
+        //elasticsearch 返回的门店数据
         List<ShopModel>  shopModels =new ArrayList<>();
+        //elasticsearch 返回的门店标签（tags）数据
+        List<Map<String,Object>> tagList = new ArrayList<>();
         //l.利用searchRequest 查询
 //        SearchRequest searchRequest = new SearchRequest("shop");
 //        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -321,6 +326,12 @@ public class ShopServiceImpl implements ShopService {
         jsonRequestObject.getJSONObject("query").getJSONObject("function_score").put("query",new JSONObject());
         jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").put("bool",new JSONObject());
         JSONArray mustArray = new JSONArray();
+        if(tags !=null){
+            JSONObject tagObj = new JSONObject();
+            tagObj.put("term",new JSONObject());
+            tagObj.getJSONObject("term").put("tags",tags);
+            mustArray.add(tagObj);
+        }
         if(categoryId !=null){
             JSONObject categoryObj = new JSONObject();
             categoryObj.put("term",new JSONObject());
@@ -356,28 +367,28 @@ public class ShopServiceImpl implements ShopService {
             gauss.getJSONObject("gauss").getJSONObject("location").put("decay",0.5);
             jsonArray.add(gauss);
             //function _field_value_factor -> remark_score
-            JSONObject remark_score = new JSONObject();
-            remark_score.put("weight",0.2);
-            remark_score.put("field_value_factor",new JSONObject());
-            remark_score.getJSONObject("field_value_factor").put("field","remark_score");
-            jsonArray.add(remark_score);
+            JSONObject remarkScore = new JSONObject();
+            remarkScore.put("weight",0.2);
+            remarkScore.put("field_value_factor",new JSONObject());
+            remarkScore.getJSONObject("field_value_factor").put("field","remark_score");
+            jsonArray.add(remarkScore);
             //function _field_value_factor -> seller_remark_score
-            JSONObject seller_remark_score = new JSONObject();
-            seller_remark_score.put("weight",0.2);
-            seller_remark_score.put("field_value_factor",new JSONObject());
-            seller_remark_score.getJSONObject("field_value_factor").put("field","seller_remark_score");
-            jsonArray.add(seller_remark_score);
+            JSONObject sellerRemarkScore = new JSONObject();
+            sellerRemarkScore.put("weight",0.2);
+            sellerRemarkScore.put("field_value_factor",new JSONObject());
+            sellerRemarkScore.getJSONObject("field_value_factor").put("field","seller_remark_score");
+            jsonArray.add(sellerRemarkScore);
         }else{
             //order by 低价排序
             //boost_mode functions 的排序得分替换query的排序得分
             jsonRequestObject.getJSONObject("query").getJSONObject("function_score").put("boost_mode","replace");
             jsonRequestObject.getJSONObject("query").getJSONObject("function_score").put("score_mode","sum");
 
-            JSONObject seller_remark_score = new JSONObject();
-            seller_remark_score.put("weight",1);
-            seller_remark_score.put("field_value_factor",new JSONObject());
-            seller_remark_score.getJSONObject("field_value_factor").put("field","price_per_man");
-            jsonArray.add(seller_remark_score);
+            JSONObject sellerRemarkScore = new JSONObject();
+            sellerRemarkScore.put("weight",1);
+            sellerRemarkScore.put("field_value_factor",new JSONObject());
+            sellerRemarkScore.getJSONObject("field_value_factor").put("field","price_per_man");
+            jsonArray.add(sellerRemarkScore);
         }
         jsonRequestObject.getJSONObject("query").getJSONObject("function_score").put("functions",jsonArray);
         //5.构建排序sort
@@ -390,13 +401,17 @@ public class ShopServiceImpl implements ShopService {
             //低价排序
             sortJsonObject.getJSONObject("_score").put("order","asc");
         }
-
         sortArray.add(sortJsonObject);
         jsonRequestObject.put("sort",sortArray);
-
+        //6.构建分组 aggs.group_by_tags
+        jsonRequestObject.put("aggs",new JSONObject());
+        jsonRequestObject.getJSONObject("aggs").put("group_by_tags",new JSONObject());
+        jsonRequestObject.getJSONObject("aggs").getJSONObject("group_by_tags").put("terms", new JSONObject());
+        jsonRequestObject.getJSONObject("aggs").getJSONObject("group_by_tags").getJSONObject("terms").put("field","tags");
+        //构建查询请求完成，开始查询
         log.info(jsonRequestObject.toJSONString());
         request.setJsonEntity(jsonRequestObject.toJSONString());
-
+        //查询elasticsearch 返回数据
         Response response = restHighLevelClient.getLowLevelClient().performRequest(request);
         String responseStr = EntityUtils.toString(response.getEntity());
         log.info(responseStr);
@@ -409,9 +424,20 @@ public class ShopServiceImpl implements ShopService {
             ShopModel shopModel = get(id);
             shopModel.setId(id);
             shopModel.setDistance(distance.multiply(new BigDecimal("1000").setScale(0,BigDecimal.ROUND_UP)).intValue());
-                shopModels.add(shopModel);
+            shopModels.add(shopModel);
         }
-        result.put("shop",shopModels);
+        JSONArray jsonArrayTags = jsonObject.getJSONObject("aggregations").getJSONObject("group_by_tags").getJSONArray("buckets");
+        for (int i = 0; i < jsonArrayTags.size(); i++) {
+            JSONObject jsonObj = jsonArrayTags.getJSONObject(i);
+            String key = jsonObj.get("key").toString();
+            Integer docCount = Integer.parseInt(jsonObj.get("doc_count").toString()) ;
+            Map<String,Object> tagMap = new HashMap<>(2);
+            tagMap.put("tags",key);
+            tagMap.put("num",docCount);
+            tagList.add(tagMap);
+        }
+        result.put("shops",shopModels);
+        result.put("tags",tagList);
         return result;
     }
 }
