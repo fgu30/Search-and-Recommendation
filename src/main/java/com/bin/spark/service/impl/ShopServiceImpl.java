@@ -3,7 +3,6 @@ package com.bin.spark.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bin.spark.common.BaseException;
-import com.bin.spark.common.BusinessException;
 import com.bin.spark.common.EmBusinessError;
 import com.bin.spark.mapper.ShopModelMapper;
 import com.bin.spark.model.CategoryModel;
@@ -12,23 +11,12 @@ import com.bin.spark.model.ShopModel;
 import com.bin.spark.service.CategoryService;
 import com.bin.spark.service.SellerService;
 import com.bin.spark.service.ShopService;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.util.EntityUtils;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Request;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.jackson.JsonObjectDeserializer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -37,8 +25,6 @@ import tk.mybatis.mapper.entity.Example;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Created by 斌~
@@ -67,7 +53,7 @@ public class ShopServiceImpl implements ShopService {
      * @return
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ShopModel create(ShopModel shopModel) throws BaseException{
         //校验商家
         SellerModel sellerModel = sellerService.get(shopModel.getSellerId());
@@ -122,7 +108,7 @@ public class ShopServiceImpl implements ShopService {
      * @return
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<ShopModel> selectAll() {
         List<ShopModel> shopModelList = shopModelMapper.selectAll();
         shopModelList.forEach(shopModel -> {
@@ -203,7 +189,7 @@ public class ShopServiceImpl implements ShopService {
      * @return
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> searchEs(BigDecimal longitude, BigDecimal latitude, String keyword, Integer orderBy, Integer categoryId, String tags) throws IOException {
         Map<String, Object> result = new HashMap<>(2);
         //elasticsearch 返回的门店数据
