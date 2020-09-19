@@ -342,32 +342,32 @@ public class ShopServiceImpl implements ShopService {
             mustArray.add(termObj);
             jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").getJSONObject("bool").put("must",mustArray);
         }else{
-            JSONArray mustArray = new JSONArray();
+            JSONArray shouldArray =new JSONArray();
+            JSONObject shouldMatchObj = new JSONObject();
+            shouldMatchObj.put("match",new JSONObject());
+            shouldMatchObj.getJSONObject("match").put("name",new JSONObject());
+            shouldMatchObj.getJSONObject("match").getJSONObject("name").put("query",keyword);
+            shouldMatchObj.getJSONObject("match").getJSONObject("name").put("boost",0.1);
+            shouldArray.add(shouldMatchObj);
+            //根据词性构建
+            for(String key:cixingMap.keySet()){
+                JSONObject shouldTermObj = new JSONObject();
+                shouldTermObj.put("term",new JSONObject());
+                shouldTermObj.getJSONObject("term").put("category_id",new JSONObject());
+                shouldTermObj.getJSONObject("term").getJSONObject("category_id").put("value",cixingMap.get(key));
+                shouldTermObj.getJSONObject("term").getJSONObject("category_id").put("boost",0.1);
+                shouldArray.add(shouldTermObj);
+            }
+            JSONObject boolObj = new JSONObject();
+            boolObj.put("bool",new JSONObject());
+            boolObj.getJSONObject("bool").put("should",shouldArray);
             JSONObject termObj = new JSONObject();
             termObj.put("term",new JSONObject());
             termObj.getJSONObject("term").put("seller_disabled_flag",0);
-            mustArray.add(termObj);
 
-            JSONObject boolShouldObj = new JSONObject();
-            boolShouldObj.put("bool",new JSONObject());
-            mustArray.add(boolShouldObj);
-            int filterQueryIndex=0;
-            JSONArray shouldArray = new JSONArray();
-            JSONObject matchObj = new JSONObject();
-            matchObj.put("match",new JSONObject());
-            matchObj.getJSONObject("match").put("name",new JSONObject());
-            matchObj.getJSONObject("name").put("query",keyword);
-            matchObj.getJSONObject("name").put("boost",0.1);
-            shouldArray.add(matchObj);
-            //根据词性构建
-            for(String key:cixingMap.keySet()){
-                filterQueryIndex ++;
-                JSONObject categoryObj = new JSONObject();
-                categoryObj.put("term",new JSONObject());
-                categoryObj.getJSONObject("term").put("category_id",cixingMap.get(key));
-                shouldArray.add(categoryObj);
-            }
-            boolShouldObj.getJSONObject("bool").put("should",shouldArray);
+            JSONArray mustArray = new JSONArray();
+            mustArray.add(boolObj);
+            mustArray.add(termObj);
             jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").getJSONObject("bool").put("must",mustArray);
         }
 
