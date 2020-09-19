@@ -22,9 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by 斌~
@@ -311,30 +314,63 @@ public class ShopServiceImpl implements ShopService {
         jsonRequestObject.getJSONObject("query").put("function_score",new JSONObject());
         jsonRequestObject.getJSONObject("query").getJSONObject("function_score").put("query",new JSONObject());
         jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").put("bool",new JSONObject());
-        JSONArray mustArray = new JSONArray();
-        if(tags !=null){
-            JSONObject tagObj = new JSONObject();
-            tagObj.put("term",new JSONObject());
-            tagObj.getJSONObject("term").put("tags",tags);
-            mustArray.add(tagObj);
+       //4.1 查询相关性词性，分情况构建must节点下的数据
+        Map<String,Integer> cixingMap = analyzeCategoryKeyword(keyword);
+        if(cixingMap.isEmpty()){
+            JSONArray mustArray = new JSONArray();
+            if(tags !=null){
+                JSONObject tagObj = new JSONObject();
+                tagObj.put("term",new JSONObject());
+                tagObj.getJSONObject("term").put("tags",tags);
+                mustArray.add(tagObj);
+            }
+            if(categoryId !=null){
+                JSONObject categoryObj = new JSONObject();
+                categoryObj.put("term",new JSONObject());
+                categoryObj.getJSONObject("term").put("category_id",categoryId);
+                mustArray.add(categoryObj);
+            }
+            JSONObject matchObj = new JSONObject();
+            matchObj.put("match",new JSONObject());
+            matchObj.getJSONObject("match").put("name",new JSONObject());
+            matchObj.getJSONObject("match").getJSONObject("name").put("query",keyword);
+            matchObj.getJSONObject("match").getJSONObject("name").put("boost",0.1);
+            mustArray.add(matchObj);
+            JSONObject termObj = new JSONObject();
+            termObj.put("term",new JSONObject());
+            termObj.getJSONObject("term").put("seller_disabled_flag",0);
+            mustArray.add(termObj);
+            jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").getJSONObject("bool").put("must",mustArray);
+        }else{
+            JSONArray mustArray = new JSONArray();
+            JSONObject termObj = new JSONObject();
+            termObj.put("term",new JSONObject());
+            termObj.getJSONObject("term").put("seller_disabled_flag",0);
+            mustArray.add(termObj);
+
+            JSONObject boolShouldObj = new JSONObject();
+            boolShouldObj.put("bool",new JSONObject());
+            mustArray.add(boolShouldObj);
+            int filterQueryIndex=0;
+            JSONArray shouldArray = new JSONArray();
+            JSONObject matchObj = new JSONObject();
+            matchObj.put("match",new JSONObject());
+            matchObj.getJSONObject("match").put("name",new JSONObject());
+            matchObj.getJSONObject("name").put("query",keyword);
+            matchObj.getJSONObject("name").put("boost",0.1);
+            shouldArray.add(matchObj);
+            //根据词性构建
+            for(String key:cixingMap.keySet()){
+                filterQueryIndex ++;
+                JSONObject categoryObj = new JSONObject();
+                categoryObj.put("term",new JSONObject());
+                categoryObj.getJSONObject("term").put("category_id",cixingMap.get(key));
+                shouldArray.add(categoryObj);
+            }
+            boolShouldObj.getJSONObject("bool").put("should",shouldArray);
+            jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").getJSONObject("bool").put("must",mustArray);
         }
-        if(categoryId !=null){
-            JSONObject categoryObj = new JSONObject();
-            categoryObj.put("term",new JSONObject());
-            categoryObj.getJSONObject("term").put("category_id",categoryId);
-            mustArray.add(categoryObj);
-        }
-        JSONObject matchObj = new JSONObject();
-        matchObj.put("match",new JSONObject());
-        matchObj.getJSONObject("match").put("name",new JSONObject());
-        matchObj.getJSONObject("match").getJSONObject("name").put("query",keyword);
-        matchObj.getJSONObject("match").getJSONObject("name").put("boost",0.1);
-        mustArray.add(matchObj);
-        JSONObject termObj = new JSONObject();
-        termObj.put("term",new JSONObject());
-        termObj.getJSONObject("term").put("seller_disabled_flag",0);
-        mustArray.add(termObj);
-        jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").getJSONObject("bool").put("must",mustArray);
+
         //query END ==================================================================================================
 
         //functions构建
@@ -425,5 +461,60 @@ public class ShopServiceImpl implements ShopService {
         result.put("shops",shopModels);
         result.put("tags",tagList);
         return result;
+    }
+
+    /**
+     * 构造分词函数识别器
+     * 如 吃饭睡觉 分词解析出  吃饭  和 睡觉
+     * 相关性重塑对应的 是美食 （1） 和 酒店（2）
+     * @param keyword 查询参数
+     * @return map
+     */
+    private Map<String,Integer> analyzeCategoryKeyword(String keyword) throws IOException {
+        Map<String,Integer> map = new HashMap<>();
+        //构建请求
+        Request request =new Request("GET","/shop/_analyze");
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put("field","name");
+        jsonObj.put("text",keyword);
+        request.setJsonEntity(jsonObj.toJSONString());
+        //响应
+        Response response = restHighLevelClient.getLowLevelClient().performRequest(request);
+        String responseStr = EntityUtils.toString(response.getEntity());
+        JSONObject jsonObject = JSONObject.parseObject(responseStr);
+        JSONArray tokens = jsonObject.getJSONArray("tokens");
+        for (int i = 0; i <tokens.size(); i++) {
+            String token = tokens.getJSONObject(i).getString("token");
+            Integer categoryId = getCategoryIdByToken( token);
+            if(categoryId !=null){
+                map.put(token,categoryId);
+            }
+        }
+        return  map;
+    }
+    //通过传入的token解析出对应的类目id
+    private  Integer getCategoryIdByToken(String token){
+        Set<Integer> integers = categoryWorkMap.keySet();
+        for(Integer key:integers){
+            if(categoryWorkMap.get(key).contains(token)){
+                return key;
+            }
+        }
+        return null;
+    }
+
+    private Map<Integer,List<String>> categoryWorkMap  = new HashMap<>();
+
+    @PostConstruct
+    public void init(){
+        categoryWorkMap.put(1,new ArrayList<>());
+        categoryWorkMap.put(2,new ArrayList<>());
+
+        categoryWorkMap.get(1).add("吃饭");
+        categoryWorkMap.get(1).add("下午茶");
+
+        categoryWorkMap.get(2).add("休息");
+        categoryWorkMap.get(2).add("睡觉");
+        categoryWorkMap.get(2).add("住宿");
     }
 }
