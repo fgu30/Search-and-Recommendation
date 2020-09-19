@@ -342,6 +342,7 @@ public class ShopServiceImpl implements ShopService {
             mustArray.add(termObj);
             jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").getJSONObject("bool").put("must",mustArray);
         }else{
+
             JSONArray shouldArray =new JSONArray();
             JSONObject shouldMatchObj = new JSONObject();
             shouldMatchObj.put("match",new JSONObject());
@@ -368,6 +369,12 @@ public class ShopServiceImpl implements ShopService {
             JSONArray mustArray = new JSONArray();
             mustArray.add(boolObj);
             mustArray.add(termObj);
+            if(tags !=null){
+                JSONObject tagObj = new JSONObject();
+                tagObj.put("term",new JSONObject());
+                tagObj.getJSONObject("term").put("tags",tags);
+                mustArray.add(tagObj);
+            }
             jsonRequestObject.getJSONObject("query").getJSONObject("function_score").getJSONObject("query").getJSONObject("bool").put("must",mustArray);
         }
 
