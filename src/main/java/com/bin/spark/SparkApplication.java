@@ -8,7 +8,7 @@ import tk.mybatis.spring.annotation.MapperScan;
 @SpringBootApplication(scanBasePackages = {"com.bin.spark"})
 @MapperScan(basePackages = "com.bin.spark.mapper")
 //开启定时任务，注释掉，取消canal的接入
-//@EnableScheduling
+@EnableScheduling
 public class SparkApplication {
     public static void main(String[] args) {
         SpringApplication.run(SparkApplication.class, args);
