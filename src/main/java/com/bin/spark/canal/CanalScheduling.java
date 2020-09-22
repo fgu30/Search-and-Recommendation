@@ -86,7 +86,8 @@ public class CanalScheduling implements Runnable, ApplicationContextAware {
             CanalEntry.Column idColumn = columns.stream().filter(column -> column.getIsKey()
                     && primaryKey.equals(column.getName())).findFirst().orElse(null);
 
-            Map<String,Object> dataMap = columns.stream().collect(Collectors.toMap(CanalEntry.Column::getName,CanalEntry.Column::getValue));
+//            Map<String,Object> dataMap = columns.stream().collect(Collectors.toMap(CanalEntry.Column::getName,CanalEntry.Column::getValue));
+            Map<String,Object> dataMap = parseColumnsToMap(columns);
             try{
                 indexES(dataMap, database, table,eventType.toString());
             } catch (IOException e) {
