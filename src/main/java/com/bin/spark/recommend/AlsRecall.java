@@ -22,7 +22,7 @@ public class AlsRecall implements Serializable {
         //初始化spark运行环境
         SparkSession spark = SparkSession.builder()
                 .master("local")
-                .appName("DianpingApp")
+                .appName("SparkApp")
                 .getOrCreate();
         JavaRDD<String> csvFile = spark.read().textFile("file:///Users/mac/Desktop/data/behavior.csv").toJavaRDD();
         JavaRDD<Rating> ratingJavaRDD = csvFile.map(new Function<String, Rating>() {
@@ -51,7 +51,7 @@ public class AlsRecall implements Serializable {
 
         //模型训练
         ALSModel alsModel = als.fit(trainingData);
-        alsModel.save("file:///Users/mac/Desktop/data/als");
+        alsModel.save("file:///Users/mac/Desktop/data/alsModel");
     }
 
     public static class Rating implements Serializable{
