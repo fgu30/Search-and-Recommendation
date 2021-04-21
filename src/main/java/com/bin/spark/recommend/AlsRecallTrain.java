@@ -50,7 +50,7 @@ public class AlsRecallTrain implements Serializable {
         double rmse = evaluator.evaluate(predictions);
         System.out.println("rmse = "+rmse);
         //保存数据模型
-        alsModel.save("file:///Users/mac/Desktop/data/alsmodel");
+        alsModel.save("file:///Users/mac/Desktop/data/alsModel");
     }
     @Data
     public static class Rating implements Serializable{
