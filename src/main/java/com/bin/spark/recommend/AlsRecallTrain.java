@@ -23,7 +23,7 @@ public class AlsRecallTrain implements Serializable {
 
     public static void main(String[] args) throws IOException {
         //初始化spark运行环境
-        SparkSession spark = SparkSession.builder().master("local").appName("testALS").getOrCreate();
+        SparkSession spark = SparkSession.builder().master("local").appName("SparkApp").getOrCreate();
         JavaRDD<String> csvFile = spark.read().textFile("file:///Users/mac/Desktop/data/behavior.csv").toJavaRDD();
         JavaRDD<Rating> ratingJavaRDD = csvFile.map(new Function<String, Rating>() {
             @Override
