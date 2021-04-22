@@ -53,3 +53,9 @@ CREATE TABLE `spark_db`.`shop`  (
   `icon_url` varchar(100) NOT NULL DEFAULT '' COMMENT '门店图标url',
   PRIMARY KEY (`id`)
 );
+
+CREATE TABLE `recommend` (
+  `id` int(11) NOT NULL,
+  `recommend` varchar(1000) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
