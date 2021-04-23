@@ -25,22 +25,21 @@ import java.util.*;
 public class AlsRecallPredict{
     public static void main(String[] args) {
         //初始化spark运行环境
-        SparkSession spark = SparkSession.builder()
-                .master("local")
-                .appName("SparkApp")
-                .getOrCreate();
+        SparkSession spark = SparkSession.builder().master("local").appName("SparkApp").getOrCreate();
+        //加载模型进内存
         ALSModel alsModel = ALSModel.load("file:///Users/mac/Desktop/data/alsModel");
+
         JavaRDD<String> csvFile = spark.read().textFile("file:///Users/mac/Desktop/data/behavior.csv").toJavaRDD();
         JavaRDD<Rating> ratingJavaRDD = csvFile.map(new Function<String, Rating>() {
             @Override
             public Rating call(String str) throws Exception {
-                // TODO Auto-generated method stub
                 return Rating.parseRating(str);
             }
         });
         Dataset<Row> rating = spark.createDataFrame(ratingJavaRDD, Rating.class);
+
         //给5个user做召回结果的预测
-        Dataset<Row> users = rating.select(alsModel.getUserCol()).distinct().limit(5);
+        Dataset<Row> users = rating.select(alsModel.getItemCol()).distinct().limit(5);
         Dataset<Row> usersRecs = alsModel.recommendForItemSubset(users, 20);
         //先分片
         usersRecs.foreachPartition(new ForeachPartitionFunction<Row>() {
@@ -48,36 +47,35 @@ public class AlsRecallPredict{
             public void call(Iterator<Row> t) throws Exception {
                 //建立数据库连接
                 Connection connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/spark_db?user=root&password=root123456&useUnicode=true&useSSL=false&characterEncoding=UTF-8");
-                PreparedStatement pst=  connection.prepareStatement("insert into recommend(id,recommend) values (?,?)");
+                PreparedStatement preparedStatement=  connection.prepareStatement("insert into recommend(id,recommend) values (?,?)");
                 List<Map<String,Object>> data = new ArrayList<>();
                 //再遍历
                 t.forEachRemaining(action->{
                     //这里才是Row值了
                     int userId = action.getInt(0);
                     List<GenericRowWithSchema> recommendationList = action.getList(1);
-                    List<String> shopIdList = new ArrayList<>();
+                    List<Integer> shopIdList = new ArrayList<>();
                     recommendationList.forEach(row->{
-                        int shopId = row.getInt(0);
-                        shopIdList.add(Integer.toString(shopId));
+                        Integer shopId = row.getInt(0);
+                        shopIdList.add(shopId);
                     });
-                    String recommend = StringUtils.join(shopIdList, ',');
+                    String recommend = StringUtils.join(shopIdList, ",");
                     Map<String,Object> map = new HashMap<>(2);
                     map.put("userId", userId);
                     map.put("recommend",recommend);
                     data.add(map);
                 });
                 data.forEach(recommends->{
-                    int userId = Integer.parseInt(recommends.get("userId").toString());
-                    String recommend = recommends.get("recommend").toString();
                     try {
-                        pst.setInt(1, userId);
-                        pst.setString(2, recommend);
-                        pst.addBatch();
+                        preparedStatement.setInt(1, Integer.parseInt(recommends.get("userId").toString()));
+                        preparedStatement.setString(2, recommends.get("recommend").toString());
+                        preparedStatement.addBatch();
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
                 });
-                pst.executeBatch();
+                preparedStatement.executeBatch();
+                connection.close();
             }
         });
     }

@@ -8,6 +8,7 @@ import com.bin.spark.mapper.ShopModelMapper;
 import com.bin.spark.model.CategoryModel;
 import com.bin.spark.model.SellerModel;
 import com.bin.spark.model.ShopModel;
+import com.bin.spark.recommend.RecommendService;
 import com.bin.spark.service.CategoryService;
 import com.bin.spark.service.SellerService;
 import com.bin.spark.service.ShopService;
@@ -49,6 +50,9 @@ public class ShopServiceImpl implements ShopService {
 
     @Autowired
     private RestHighLevelClient restHighLevelClient;
+
+    @Autowired
+    private RecommendService recommendService;
     /**
      * 创建门店
      *
@@ -123,7 +127,7 @@ public class ShopServiceImpl implements ShopService {
 
     /**
      * 根据经纬度查询
-     *
+     * spark 推荐算法
      * @param longitude
      * @param latitude
      * @return
@@ -131,6 +135,10 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Transactional(rollbackFor =Exception.class)
     public List<ShopModel> recommend(BigDecimal longitude, BigDecimal latitude) {
+        //spark 推荐算法
+//        List<Integer> shopIdList = recommendService.recall(148);
+//        List<ShopModel> shopModelList = shopIdList.stream().map(this::get).collect(Collectors.toList());
+        //根据经纬度查询
         List<ShopModel> shopModelList = shopModelMapper.recommend(longitude, latitude);
         shopModelList.forEach(shopModel -> {
             shopModel.setSellerModel(sellerService.get(shopModel.getSellerId()));
