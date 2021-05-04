@@ -1,7 +1,7 @@
 server:
   port: 8010
 # 后台访问路径  http://localhost:8010/admin/admin/index
-# 前台访问路径  http://localhost:8010/static/index.html
+# 前台访问路径  http://localhost:8010/static/index.html  110  110
 spring:
   # 以下配置能使用elasticsearchTemplate
   data:
