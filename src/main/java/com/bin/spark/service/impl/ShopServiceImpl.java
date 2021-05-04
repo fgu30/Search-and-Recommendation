@@ -18,6 +18,7 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -48,6 +49,7 @@ public class ShopServiceImpl implements ShopService {
     @Autowired
     private SellerService sellerService;
 
+    @Qualifier("highLevelClient")
     @Autowired
     private RestHighLevelClient restHighLevelClient;
 
