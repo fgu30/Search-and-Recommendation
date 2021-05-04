@@ -13,6 +13,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,6 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author mac
+ * canal 渠道数据处理
+ */
 @Component
 @Slf4j
 public class CanalScheduling implements Runnable, ApplicationContextAware {
@@ -37,9 +42,13 @@ public class CanalScheduling implements Runnable, ApplicationContextAware {
     @Resource
     private CanalConnector canalConnector;
 
+    @Qualifier("highLevelClient")
     @Autowired
     private RestHighLevelClient restHighLevelClient;
 
+    /**
+     * 100毫秒 执行一次
+     */
     @Override
     @Scheduled(fixedDelay = 100)
     public void run() {

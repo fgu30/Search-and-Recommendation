@@ -9,6 +9,10 @@ import org.springframework.stereotype.Component;
 
 import java.net.InetSocketAddress;
 
+/**
+ * @author mac
+ * canal客户端接入
+ */
 @Component
 public class CanalClient implements DisposableBean{
 
