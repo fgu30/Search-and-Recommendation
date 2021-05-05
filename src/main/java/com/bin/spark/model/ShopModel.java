@@ -1,12 +1,17 @@
 package com.bin.spark.model;
 
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
+/**
+ * @author mac
+ */
 @Data
 @Table(name = "shop")
+@ToString
 public class ShopModel {
 
     @Id
