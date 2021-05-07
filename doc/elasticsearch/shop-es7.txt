@@ -1,0 +1,66 @@
+PUT /shop
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "id":{"type":"integer"},
+      "name":{"type":"text","analyzer": "ik_max_word","search_analyzer": "ik_smart"},
+      "tags":{"type":"text","analyzer": "whitespace","fielddata": true},
+      "location":{"type":"geo_point"},
+      "remark_score":{"type":"double"},
+      "price_per_man":{"type":"integer"},
+      "category_id":{"type":"integer"},
+      "category_name":{"type":"keyword"},
+      "seller_id":{"type":"integer"},
+      "seller_remark_score":{"type":"double"},
+      "seller_disabled_flag":{"type":"integer"}
+    }
+  }
+}
+
+---  同义词扩展索引
+PUT /shop
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "analysis": {
+      "filter": {
+        "synonym_filter":{
+          "type": "synonym",
+          "synonyms_path":"analysis-ik/synonyms.txt"
+        }
+      },
+      "analyzer": {
+        "ik_syno":{
+          "type":"custom",
+          "tokenizer":"ik_smart",
+          "filter":["synonym_filter"]
+        },
+        "ik_syno_max":{
+          "type":"custom",
+          "tokenizer":"ik_max_word",
+          "filter":["synonym_filter"]
+        }
+      }
+    }
+  },
+   "mappings": {
+    "properties": {
+      "id":{"type":"integer"},
+      "name":{"type":"text","analyzer": "ik_syno_max","search_analyzer": "ik_syno"},
+      "tags":{"type":"text","analyzer": "whitespace","fielddata": true},
+      "location":{"type":"geo_point"},
+      "remark_score":{"type":"double"},
+      "price_per_man":{"type":"integer"},
+      "category_id":{"type":"integer"},
+      "category_name":{"type":"keyword"},
+      "seller_id":{"type":"integer"},
+      "seller_remark_score":{"type":"double"},
+      "seller_disabled_flag":{"type":"integer"}
+    }
+  }
+}

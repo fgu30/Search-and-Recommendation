@@ -1,7 +1,13 @@
 server:
   port: 8010
-
+# 后台访问路径  http://localhost:8010/admin/admin/index
+# 前台访问路径  http://localhost:8010/static/index.html  110  110
 spring:
+  # 以下配置能使用elasticsearchTemplate
+  data:
+    elasticsearch:
+      cluster-nodes: 127.0.0.1:9300
+      cluster-name: my-application
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
