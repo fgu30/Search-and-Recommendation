@@ -1,8 +1,17 @@
 package com.bin.spark;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bin.spark.model.ShopModel;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.hadoop.yarn.webapp.Params;
+import org.apache.http.entity.ContentType;
+import org.apache.http.nio.entity.NStringEntity;
+import org.apache.http.util.EntityUtils;
+import org.apache.spark.sql.catalyst.plans.logical.Project;
+import org.elasticsearch.action.admin.cluster.storedscripts.PutStoredScriptRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -10,14 +19,24 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.ActiveShardCount;
+import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.ml.PostDataRequest;
+import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptType;
+import org.elasticsearch.script.mustache.SearchTemplateRequest;
+import org.elasticsearch.script.mustache.SearchTemplateResponse;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -27,11 +46,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.elasticsearch.core.query.ScriptField;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +61,7 @@ import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SparkApplication.class)
+@Slf4j
 class SparkApplicationTests {
 
     @Qualifier("highLevelClient")
@@ -167,9 +189,9 @@ class SparkApplicationTests {
         SearchRequest searchRequest = new SearchRequest("shop");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         //名称查询
-        searchSourceBuilder.query(QueryBuilders.matchQuery("name","酒店"));
-        //人均消费排序
-        searchSourceBuilder.sort("price_per_man", SortOrder.ASC);
+        searchSourceBuilder.query(QueryBuilders.matchQuery("name","凯悦"));
+        //权重评分排序
+        searchSourceBuilder.sort("_score", SortOrder.DESC);
         searchSourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
         //分页
         searchSourceBuilder.from(0);
@@ -177,16 +199,136 @@ class SparkApplicationTests {
         //高亮
         searchSourceBuilder.highlighter(highlightBuilder);
 
-        Script script = new Script("distance");
-        searchSourceBuilder.scriptField("distance", script,true);
+        searchSourceBuilder.scriptField("distance", new Script("distance"),true);
+
+
+
 
         searchRequest.source(searchSourceBuilder);
+        log.info(searchRequest.source().toString());
 
         SearchResponse searchResponse=restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        log.info(searchResponse.toString());
         SearchHit[] hits  = searchResponse.getHits().getHits();
         for(SearchHit hit:hits){
             System.out.println(hit.getSourceAsMap().toString());
         }
+
+    }
+
+
+    @Test
+    public void searchTemplate() throws IOException {
+//        Request request = new Request("GET","/shop/_search");
+        SearchTemplateRequest request = new SearchTemplateRequest();
+        request.setRequest(new SearchRequest("shop"));
+
+        request.setScriptType(ScriptType.INLINE);
+        request.setScript(
+                "{" +
+                        "  \"query\": { \"match\" : { \"{{field}}\" : \"{{value}}\" } }," +
+                        "  \"size\" : \"{{size}}\"" +
+                        "}");
+        Map<String, Object> scriptParams = new HashMap<>();
+        scriptParams.put("field", "name");
+        scriptParams.put("value", "凯悦");
+        scriptParams.put("size", 5);
+        request.setScriptParams(scriptParams);
+        SearchTemplateResponse response = restHighLevelClient.searchTemplate(request, RequestOptions.DEFAULT);
+        SearchHit[] hits  = response.getResponse().getHits().getHits();
+        for(SearchHit hit:hits){
+            System.out.println(hit.getSourceAsMap().toString());
+        }
+    }
+
+    @Test
+    public void searchRequest() throws IOException {
+        //构建请求体
+        JSONObject jsonRequestObject = new JSONObject();
+        //1.json第一层
+        jsonRequestObject.put("_source","*");
+        jsonRequestObject.put("query",new JSONObject());
+        jsonRequestObject.put("script_fields",new JSONObject());
+        jsonRequestObject.put("aggs",new JSONObject());
+        jsonRequestObject.put("sort",new JSONArray());
+
+        JSONObject query = jsonRequestObject.getJSONObject("query");
+        JSONObject script_fields = jsonRequestObject.getJSONObject("script_fields");
+        JSONObject aggs = jsonRequestObject.getJSONObject("aggs");
+        JSONArray sort = jsonRequestObject.getJSONArray("sort");
+
+        //1.构建sort
+        sort.add(new JSONArray().add(new JSONObject().put("_score",new JSONObject().put("order","desc"))));
+        //2.构建aggs
+        aggs.put("group_by_tags",new JSONObject().put("terms",new JSONObject().put("field","tags")));
+        //3.构建script_fields
+        script_fields.put("distance",new JSONObject().put("script",new JSONObject()
+                .put("source","haversin(lat,lon,doc['location'].lat,doc['location'].lon)")
+        ));
+
+
+        //2.构建query
+
+        log.info(jsonRequestObject.toJSONString());
+        //发起请求
+        Request request = new Request("GET","/shop/_search");
+        request.setJsonEntity(jsonRequestObject.toJSONString());
+        Response response = restHighLevelClient.getLowLevelClient().performRequest(request);
+        
+        log.info(EntityUtils.toString(response.getEntity()));
+
+        JSONObject jsonObject = JSONObject.parseObject(EntityUtils.toString(response.getEntity()));
+        JSONArray jsonArrayHits = jsonObject.getJSONObject("hits").getJSONArray("hits");
+
+
+
+    }
+
+
+    @Test
+    public void searchXContentBuilder () throws IOException {
+        XContentBuilder builder = XContentFactory.jsonBuilder();
+        //开始构建请求体
+        builder.startObject();
+        {
+            builder.startObject("properties");
+            {
+                builder.startObject("message");
+                {
+                    builder.field("type", "text");
+                }
+                builder.endObject();
+            }
+            builder.endObject();
+        }
+        {
+            builder.startObject("properties");
+            {
+                builder.startObject("message");
+                {
+                    builder.field("type", "text");
+                }
+                builder.endObject();
+            }
+            builder.endObject();
+        }
+        builder.endObject();
+
+        log.info(builder.toString());
+        //发起请求
+        IndexRequest indexRequest = new IndexRequest();
+        Request request = new Request("GET","/shop/_search");
+        indexRequest.source(builder);
+
+        NStringEntity nStringEntity = new NStringEntity(indexRequest.source().utf8ToString(), ContentType.APPLICATION_JSON);
+        String s = EntityUtils.toString(nStringEntity);
+        log.info(s);
+        request.setEntity(nStringEntity);
+//        request.content(BytesReference.bytes(builder), XContentType.JSON);
+//        request.setJsonEntity(builder.toString());
+//        Response response = restHighLevelClient.getLowLevelClient().performRequest(request);
+//
+//        log.info(EntityUtils.toString(response.getEntity()));
 
     }
 }
