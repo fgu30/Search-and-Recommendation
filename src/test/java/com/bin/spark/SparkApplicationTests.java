@@ -290,23 +290,166 @@ class SparkApplicationTests {
         XContentBuilder builder = XContentFactory.jsonBuilder();
         //开始构建请求体
         builder.startObject();
+//        {
+//            builder.startObject("properties");
+//            {
+//                builder.startObject("message");
+//                {
+//                    builder.field("type", "text");
+//                }
+//                builder.endObject();
+//            }
+//            builder.endObject();
+//        }
+        builder.field("_source","*");
         {
-            builder.startObject("properties");
+            builder.startObject("query");
             {
-                builder.startObject("message");
+                builder.startObject("function_score");
                 {
-                    builder.field("type", "text");
+                    builder.field("score_mode","sum");
+                    builder.field("boost_mode","sum");
+                    {
+                        builder.startObject("query");
+                        {
+                            builder.startObject("bool");
+                            {
+                                builder.startArray("must");
+                                {
+                                    builder.startObject();
+                                    {
+                                        builder.startObject("match");
+                                        {
+                                            builder.startObject("name");
+                                            {
+                                                builder.field("query","凯悦");
+                                                builder.field("boost",0.1);
+                                            }
+                                            builder.endObject();
+                                        }
+                                        builder.endObject();
+                                    }
+                                    builder.endObject();
+                                }
+                                {
+                                    builder.startObject();
+                                    {
+                                        builder.startObject("term");
+                                        {
+                                            builder.field("seller_disabled_flag",0);
+                                        }
+                                        builder.endObject();
+                                    }
+                                    builder.endObject();
+                                }
+                                builder.endArray();
+                            }
+                            builder.endObject();
+                        }
+                        builder.endObject();
+                    }
+                    {
+                        builder.startArray("functions");
+                        {
+                            builder.startObject();
+                            builder.field("weight",0.2);
+                            {
+                                builder.startObject("gauss");
+                                {
+                                    builder.startObject("location");
+                                    {
+                                        builder.field("offset","0km");
+                                        builder.field("origin","22.54605355,114.02597366");
+                                        builder.field("scale","100km");
+                                        builder.field("decay",0.5);
+                                    }
+                                    builder.endObject();
+                                }
+                                builder.endObject();
+                            }
+                            builder.endObject();
+                        }
+                        {
+                            builder.startObject();
+                            builder.field("weight",0.2);
+                            {
+                                builder.startObject("field_value_factor");
+                                {
+                                    //门店评分
+                                    builder.field("field","seller_remark_score");
+                                }
+                                builder.endObject();
+                            }
+                            builder.endObject();
+                        }
+                        {
+                            builder.startObject();
+                            builder.field("weight",0.2);
+                            {
+                                builder.startObject("field_value_factor");
+                                {
+                                    //商家评分
+                                    builder.field("field","remark_score");
+                                }
+                                builder.endObject();
+                            }
+                            builder.endObject();
+                        }
+                        builder.endArray();
+                    }
                 }
                 builder.endObject();
             }
             builder.endObject();
         }
+        //构建script_fields
         {
-            builder.startObject("properties");
+            builder.startObject("script_fields");
             {
-                builder.startObject("message");
+                builder.startObject("distance");
                 {
-                    builder.field("type", "text");
+                    builder.startObject("script");
+                    {
+                        builder.field("source", "haversin(lat,lon,doc['location'].lat,doc['location'].lon)");
+                        builder.field("lang", "expression");
+                        builder.startObject("params");
+                        {
+                            builder.field("lon", 114.02597366);
+                            builder.field("lat", 22.54605355);
+                        }
+                        builder.endObject();
+                    }
+                    builder.endObject();
+                }
+                builder.endObject();
+            }
+            builder.endObject();
+        }
+        //构建sort
+        {
+            builder.startArray ("sort");
+                builder.startObject();
+                {
+                    builder.startObject("_score");
+                    {
+                        builder.field("order", "desc");
+                    }
+                    builder.endObject();
+                }
+                builder.endObject();
+            builder.endArray();
+        }
+        //构建aggs
+        {
+            builder.startObject("aggs");
+            {
+                builder.startObject("group_by_tags");
+                {
+                    builder.startObject("terms");
+                    {
+                        builder.field("field", "tags");
+                    }
+                    builder.endObject();
                 }
                 builder.endObject();
             }
@@ -314,21 +457,23 @@ class SparkApplicationTests {
         }
         builder.endObject();
 
-        log.info(builder.toString());
+
         //发起请求
         IndexRequest indexRequest = new IndexRequest();
         Request request = new Request("GET","/shop/_search");
         indexRequest.source(builder);
 
-        NStringEntity nStringEntity = new NStringEntity(indexRequest.source().utf8ToString(), ContentType.APPLICATION_JSON);
-        String s = EntityUtils.toString(nStringEntity);
-        log.info(s);
+        NStringEntity nStringEntity = new NStringEntity(indexRequest.source().utf8ToString(),
+                ContentType.APPLICATION_JSON);
+
+        log.info(EntityUtils.toString(nStringEntity));
         request.setEntity(nStringEntity);
-//        request.content(BytesReference.bytes(builder), XContentType.JSON);
-//        request.setJsonEntity(builder.toString());
-//        Response response = restHighLevelClient.getLowLevelClient().performRequest(request);
+        Response response = restHighLevelClient.getLowLevelClient().performRequest(request);
 //
-//        log.info(EntityUtils.toString(response.getEntity()));
+        log.info(EntityUtils.toString(response.getEntity()));
 
     }
+
+
+
 }
