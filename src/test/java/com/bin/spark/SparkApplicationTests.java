@@ -26,6 +26,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.ml.PostDataRequest;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
@@ -459,21 +460,20 @@ class SparkApplicationTests {
 
 
         //发起请求
-        IndexRequest indexRequest = new IndexRequest();
         Request request = new Request("GET","/shop/_search");
-        indexRequest.source(builder);
 
-        NStringEntity nStringEntity = new NStringEntity(indexRequest.source().utf8ToString(),
-                ContentType.APPLICATION_JSON);
+//        IndexRequest indexRequest = new IndexRequest();
+//        indexRequest.source(builder);
+//        NStringEntity nStringEntity = new NStringEntity(indexRequest.source().utf8ToString(), ContentType.APPLICATION_JSON);
+//        log.info(EntityUtils.toString(nStringEntity));
+//        request.setEntity(nStringEntity);
 
-        log.info(EntityUtils.toString(nStringEntity));
-        request.setEntity(nStringEntity);
+        String json = Strings.toString(builder);
+        log.info(json);
+        request.setJsonEntity(json);
         Response response = restHighLevelClient.getLowLevelClient().performRequest(request);
 //
         log.info(EntityUtils.toString(response.getEntity()));
 
     }
-
-
-
 }
