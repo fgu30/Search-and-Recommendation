@@ -30,7 +30,7 @@ import java.util.Map;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SparkApplication.class)
-public class ApplicationTests {
+public class ElasticsearchTemplateTests {
 
 //    @Autowired
 //    private EsStuRepository esStuRepository;

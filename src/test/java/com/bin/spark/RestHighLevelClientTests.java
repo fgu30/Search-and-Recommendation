@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SparkApplication.class)
 @Slf4j
-class SparkApplicationTests {
+public class RestHighLevelClientTests {
 
     @Qualifier("highLevelClient")
     @Autowired
