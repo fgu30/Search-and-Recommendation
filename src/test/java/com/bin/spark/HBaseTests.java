@@ -34,8 +34,8 @@ public class HBaseTests {
     @Before
     public void setUp() {
         Configuration configuration = new Configuration();
-        configuration.set("hbase.rootdir", "hdfs://192.168.109.133:8020/hbase");
-        configuration.set("hbase.zookeeper.quorum", "192.168.109.133:2181");
+            configuration.set("hbase.rootdir", "hdfs://hadoop000:8020/hbase");
+        configuration.set("hbase.zookeeper.quorum", "hadoop000:2181");
         try {
             connection = ConnectionFactory.createConnection(configuration);
             admin = connection.getAdmin();
